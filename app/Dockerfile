@@ -11,7 +11,7 @@ RUN set -x && \
 #    systemctl start dbus.service && \
 
 WORKDIR /app
-ADD fax-order.tar.gz .
+COPY package.json /app
 RUN set -x && \
     npm install 
 
