@@ -1,28 +1,62 @@
-var Nightmare = require('nightmare'),
-    vo = require('vo'),
-    exec = require('child_process').exec;
+var Nightmare = require('nightmare');
 
-function crawler(urls) {
-  var nightmare = Nightmare();
+var settings = {
+  pageSize: 'A4',
+  landscape: false, // 縦
+  printBackground: true,
+  marginsType: 1,
+  timeout: 1000     // ms
+};
 
-  var run = function * () {
-    var titles = [];
-    for (var i = 0; i < urls.length; i++) {
-      var title = yield nightmare.goto(urls[i])
-        .wait('body')
-        .title();
-      titles.push(title);
-    }
-    return titles;
-  }
-
-  vo(run)(function(err, titles) {
-    console.dir(titles);
-    titles.forEach((t) => exec('echo ' + t, (err, stdout, stderr) =>{}));
+var nightmare = Nightmare();
+const signin = function(n) {
+  return new Promise((resolve, reject) => {
+    n
+      .goto(process.env.FMWW_SIGN_IN_URL)
+      .wait('body')
+      .evaluate((arg) => {
+        var inputs = document.getElementsByTagName('input');
+        inputs[0].value = arg.FMWW_ACCESS_KEY_ID;
+        inputs[1].value = arg.USER_NAME;
+        inputs[2].value = arg.FMWW_SECRET_ACCESS_KEY;
+        inputs[3].value = arg.PASSWORD;
+        document.getElementById('form1:login').click();
+        return 1;
+      }, { FMWW_ACCESS_KEY_ID     : process.env.FMWW_ACCESS_KEY_ID,
+           USER_NAME              : process.env.USER_NAME,
+           FMWW_SECRET_ACCESS_KEY : process.env.FMWW_SECRET_ACCESS_KEY,
+           PASSWORD               : process.env.PASSWORD })
+      .wait('#scrollCtrl_mode')
+      .title()
+      .then(function(result) {
+        console.log(result);
+        resolve();;
+      })
+      .catch(function(error) {
+        console.error(error);
+        reject();
+      });
   });
-}
+};
 
-(function() {
-  crawler(['http://www.yahoo.com', 'http://example.com', 'http://w3c.org']);
-  crawler(['https://www.google.com/', 'https://www.goo.ne.jp/', 'https://github.com/']);
-})();
+const mainmenu = function(n) {
+  return new Promise((resolve, reject) => {
+    n
+      .wait('#scrollCtrl_mode')
+      .pdf('./fmww.pdf', settings)
+      .title()
+      .end()
+      .then(function(result) {
+        console.log(result);
+        resolve();;
+      })
+      .catch(function(error) {
+        console.error(error);
+        reject();
+      });
+  });
+};
+
+signin(nightmare).then(() => {
+  return mainmenu(nightmare);
+});
