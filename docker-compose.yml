@@ -5,6 +5,9 @@ services:
     build: app
     image: fax-order-dev:1.0
     container_name: fax-order-app
+    environment:
+      NODE_ENV: development
+      #NODE_ENV: production
 #    privileged: true
 #    command: /sbin/init
 #    tty: true

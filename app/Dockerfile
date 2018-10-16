@@ -10,9 +10,6 @@ RUN set -x && \
     yum -y install nodejs
 #    systemctl start dbus.service && \
 
-# ENV NODE_ENV=production
-ENV NODE_ENV=development
-
 WORKDIR /app
 ADD fax-order.tar.gz .
 RUN set -x && \
