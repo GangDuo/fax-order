@@ -17,6 +17,19 @@ services:
 #    tty: true
 #    ports:
 #      - 8080:8888
+
+  mailfeed:
+    build: mail-feed
+    image: mail-feed-dev:1.0
+    container_name: mail-feed
+    env_file: ./mail-feed/.env
+    volumes:
+      - ./mail-feed:/mail-feed
+      - mail_feed_node_modules:/mail-feed/node_modules
+    tty: true
+
 volumes:
   node_modules:
+    driver: 'local'
+  mail_feed_node_modules:
     driver: 'local'
