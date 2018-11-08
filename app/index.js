@@ -8,7 +8,7 @@ var settings = {
   timeout: 1000     // ms
 };
 
-var nightmare = Nightmare();
+var nightmare = Nightmare({show: true});
 const signin = function(n) {
   return new Promise((resolve, reject) => {
     n
@@ -26,8 +26,84 @@ const signin = function(n) {
            USER_NAME              : process.env.USER_NAME,
            FMWW_SECRET_ACCESS_KEY : process.env.FMWW_SECRET_ACCESS_KEY,
            PASSWORD               : process.env.PASSWORD })
-      .wait('#scrollCtrl_mode')
-      .title()
+      .then(function(result) {
+        console.log(result);
+        resolve();
+      })
+      .catch(function(error) {
+        console.error(error);
+        reject();
+      });
+  });
+};
+
+
+const mainmenu = function(n) {
+  return new Promise((resolve, reject) => {
+    n
+      .wait(1000)  // ここがないと wait('#menu\\:0') がタイムアウトする
+      .wait('#menu\\:0')
+      .evaluate(() => {
+        document.getElementById('menu:0').lastChild.click();
+        document.getElementById('menu:2').firstChild.lastChild.click();
+      })
+      .then(function(result) {
+        console.log(result);
+        resolve();
+      })
+      .catch(function(error) {
+        console.error(error);
+        reject();
+      });
+  });
+};
+
+const filterorders = function(n) {
+  return new Promise((resolve, reject) => {
+    n
+      .wait('#loading')
+      .wait(function() {
+        return document.getElementById('loading').style.display === 'none'; 
+      })
+      .evaluate(() => {
+        document.getElementById('output').value = '1';
+        var spans = document.querySelector("#sup_cd\\:SELECT").children
+        for(i = 0; i < spans.length; ++i) {
+          code = spans[i].value;
+          if(code === '0610') {
+            spans[i].setAttribute("selected", "selected");
+            spans[i].className = "selected"
+          }
+        }
+        document.getElementById('sup_cd').value = '0610';
+
+        document.getElementById('search_button').click();
+      })
+      .then(function(result) {
+        console.log(result);
+        resolve();
+      })
+      .catch(function(error) {
+        console.error(error);
+        reject();
+      });
+  });
+}
+
+const checkorders = function(n) {
+  return new Promise((resolve, reject) => {
+    n
+      .wait('#loading')
+      .wait(function() {
+        return document.getElementById('loading').style.display === 'none'; 
+      })
+      .evaluate(() => {
+        var inputs = document.querySelectorAll('input[name=checkbox]');
+        if(inputs.length > 1) {
+          inputs[1].click();
+          document.getElementById('execute_button').click();
+        }
+      })
       .then(function(result) {
         console.log(result);
         resolve();;
@@ -39,12 +115,14 @@ const signin = function(n) {
   });
 };
 
-const mainmenu = function(n) {
+const previeworders = function(n) {
   return new Promise((resolve, reject) => {
     n
-      .wait('#scrollCtrl_mode')
+      .wait('#loading')
+      .wait(function() {
+        return document.getElementById('loading').style.display === 'none'; 
+      })
       .pdf('./fmww.pdf', settings)
-      .title()
       .end()
       .then(function(result) {
         console.log(result);
@@ -59,4 +137,12 @@ const mainmenu = function(n) {
 
 signin(nightmare).then(() => {
   return mainmenu(nightmare);
+}).then(() => {
+  return filterorders(nightmare);
+}).then(() => {
+  return checkorders(nightmare);
+}).then(() => {
+  return previeworders(nightmare);
+}).catch(function(error) {
+  console.error(error);
 });
