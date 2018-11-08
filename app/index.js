@@ -50,7 +50,7 @@ const signin = function(n) {
 const mainmenu = function(n) {
   return new Promise((resolve, reject) => {
     n
-      .wait(1000)  // ここがないと wait('#menu\\:0') がタイムアウトする
+      .wait('body')
       .wait('#menu\\:0')
       .evaluate(() => {
         document.getElementById('menu:0').lastChild.click();
