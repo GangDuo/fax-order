@@ -4,7 +4,7 @@ var settings = {
   pageSize: 'A4',
   landscape: false, // 縦
   printBackground: true,
-  marginsType: 1,
+  marginsType: 0,
   timeout: 1000     // ms
 };
 
