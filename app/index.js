@@ -1,4 +1,13 @@
 var Nightmare = require('nightmare');
+var Minio = require('minio')
+var minioClient = new Minio.Client({
+  endPoint: process.env.MINIO_END_POINT,
+  port: parseInt(process.env.MINIO_PORT),
+  useSSL: false,
+  accessKey: process.env.MINIO_ACCESS_KEY,
+  secretKey: process.env.MINIO_SECRET_KEY
+});
+const bucketName = "yyyymmdd-orders";
 
 var settings = {
   pageSize: 'A4',
@@ -143,6 +152,14 @@ signin(nightmare).then(() => {
   return checkorders(nightmare);
 }).then(() => {
   return previeworders(nightmare);
+}).then(() => {
+  var metaData = {
+    'X-Amz-Meta-Testing': 1234,
+    'example': 5678
+  };
+  minioClient.fPutObject(bucketName, Date.now().toString() + ".pdf", './fmww.pdf', metaData, function(err, etag) {
+    return console.log(err, etag) // err should be null
+  });
 }).catch(function(error) {
   console.error(error);
 });
